@@ -14,14 +14,15 @@ import (
 const redirectURI = "http://localhost:8080/callback"
 
 var (
-	auth  = spotify.NewAuthenticator(redirectURI, spotify.ScopeUserReadPrivate)
-	ch    = make(chan *spotify.Client)
-	state = "abc123"
+	auth           = spotify.NewAuthenticator(redirectURI, spotify.ScopeUserReadPrivate)
+	ch             = make(chan *spotify.Client)
+	state          = "abc123"
+	releaseRadarId = "37i9dQZEVXblHXYINKqgaL"
 )
 
-func clientCredentialsAuth() []spotify.SimplePlaylist {
+func clientCredentialsAuth() []spotify.PlaylistTrack {
 	config := &clientcredentials.Config{
-		ClientID:       os.Getenv("SPOTIFY_CLIENT"),
+		ClientID:       os.Getenv("SPOTIFY_ID"),
 		ClientSecret:   os.Getenv("SPOTIFY_SECRET"),
 		TokenURL:       spotify.TokenURL,
 		Scopes:         []string{},
@@ -34,17 +35,18 @@ func clientCredentialsAuth() []spotify.SimplePlaylist {
 	}
 
 	client := spotify.Authenticator{}.NewClient(token)
-	msg, page, err := client.FeaturedPlaylists()
+	page, err := client.GetPlaylistTracks(spotify.ID(releaseRadarId))
 	if err != nil {
 		log.Fatalf("couldn't get features playlists: %v", err)
 	}
 
-	fmt.Println(msg)
-	for _, playlist := range page.Playlists {
-		fmt.Println("  ", playlist.Name)
+	fmt.Printf("ID | Name | Popularity | Artists | Album | Duration")
+	for _, trackObj := range page.Tracks {
+		track := trackObj.Track
+		fmt.Printf("%v | %v | %v | %v | %v | %v\n", track.ID, track.Name, track.Popularity, track.Artists[0].Name, track.Album.Name, track.TimeDuration())
 	}
 
-	return page.Playlists
+	return page.Tracks
 }
 
 func userAuth() *spotify.Client {
