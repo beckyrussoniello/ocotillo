@@ -9,7 +9,6 @@ import (
 )
 
 const releaseRadarId = "37i9dQZEVXblHXYINKqgaL"
-const releaseRadarLength = 30
 
 type song struct {
 	ID               string
@@ -27,8 +26,8 @@ type song struct {
 	Valence          float32
 }
 
-func getPlaylistInfo(client *spotify.Client) []spotify.PlaylistTrack {
-	page, err := client.GetPlaylistTracks(spotify.ID(releaseRadarId))
+func getPlaylistInfo(client *spotify.Client, playlistID string) []spotify.PlaylistTrack {
+	page, err := client.GetPlaylistTracks(spotify.ID(playlistID))
 	if err != nil {
 		log.Fatalf("couldn't get features playlists: %v", err)
 	}
@@ -36,15 +35,39 @@ func getPlaylistInfo(client *spotify.Client) []spotify.PlaylistTrack {
 	return page.Tracks
 }
 
-func getTracksInfo(client *spotify.Client, trackIDs []spotify.ID) []*spotify.AudioFeatures {
-	page, err := client.GetAudioFeatures(trackIDs...)
+func buildSongInfo(tracklist []spotify.PlaylistTrack) map[spotify.ID]song {
+	songInfo := make(map[spotify.ID]song)
+
+	for _, trackObj := range tracklist {
+		track := trackObj.Track
+		songInfo[track.ID] = song{Name: track.Name, ArtistName: track.Artists[0].Name,
+			AlbumName: track.Album.Name, Popularity: track.Popularity}
+	}
+	return songInfo
+}
+
+func addAudioFeatures(client *spotify.Client, songInfo map[spotify.ID]song) map[spotify.ID]song {
+	trackIDs := assembleTrackIDs(songInfo)
+	tracksData, err := client.GetAudioFeatures(trackIDs...)
 	if err != nil {
 		log.Fatalf("couldn't get tracks info: %v", err)
 	}
-	return page
+	for _, track := range tracksData {
+		song := songInfo[track.ID]
+		song.Danceability = track.Danceability
+		song.Duration = track.Duration
+		song.Energy = track.Energy
+		song.Instrumentalness = track.Instrumentalness
+		song.Liveness = track.Liveness
+		song.Speechiness = track.Speechiness
+		song.Tempo = int(track.Tempo)
+		song.Valence = track.Valence
+		songInfo[track.ID] = song
+	}
+	return songInfo
 }
 
-func printSongsInfo(songsMap map[spotify.ID]song) {
+func printSongInfo(songsMap map[spotify.ID]song) {
 	fmt.Printf("ID | Name | Artist | Album | Danceability | Duration | Energy | Instrumentalness | Liveness | Popularity | Speechiness | Tempo | Valence\n")
 	for _, song := range songsMap {
 		value := reflect.ValueOf(song)
@@ -64,29 +87,10 @@ func assembleTrackIDs(songInfo map[spotify.ID]song) []spotify.ID {
 }
 
 func main() {
-	fmt.Println("Ocotillo")
 	client := clientCredentialsAuth()
-	songInfo := make(map[spotify.ID]song)
-	tracklist := getPlaylistInfo(client)
+	tracklist := getPlaylistInfo(client, releaseRadarId)
+	songInfo := buildSongInfo(tracklist)
+	songInfo = addAudioFeatures(client, songInfo)
 
-	for _, trackObj := range tracklist {
-		track := trackObj.Track
-		songInfo[track.ID] = song{Name: track.Name, ArtistName: track.Artists[0].Name,
-			AlbumName: track.Album.Name, Popularity: track.Popularity}
-	}
-	trackIDs := assembleTrackIDs(songInfo)
-	tracksInfo := getTracksInfo(client, trackIDs)
-	for _, track := range tracksInfo {
-		song := songInfo[track.ID]
-		song.Danceability = track.Danceability
-		song.Duration = track.Duration
-		song.Energy = track.Energy
-		song.Instrumentalness = track.Instrumentalness
-		song.Liveness = track.Liveness
-		song.Speechiness = track.Speechiness
-		song.Tempo = int(track.Tempo)
-		song.Valence = track.Valence
-		songInfo[track.ID] = song
-	}
-	printSongsInfo(songInfo)
+	printSongInfo(songInfo)
 }
