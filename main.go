@@ -9,6 +9,11 @@ import (
 )
 
 const releaseRadarId = "37i9dQZEVXblHXYINKqgaL"
+const discoverWeeklyId = "37i9dQZEVXcHTLYCsuh2O5"
+
+type playlist_getter struct {
+	client *spotify.Client
+}
 
 type song struct {
 	ID               string
@@ -26,8 +31,8 @@ type song struct {
 	Valence          float32
 }
 
-func getPlaylistInfo(client *spotify.Client, playlistID string) []spotify.PlaylistTrack {
-	page, err := client.GetPlaylistTracks(spotify.ID(playlistID))
+func (pg *playlist_getter) getPlaylistInfo(playlistID string) []spotify.PlaylistTrack {
+	page, err := pg.client.GetPlaylistTracks(spotify.ID(playlistID))
 	if err != nil {
 		log.Fatalf("couldn't get features playlists: %v", err)
 	}
@@ -35,7 +40,8 @@ func getPlaylistInfo(client *spotify.Client, playlistID string) []spotify.Playli
 	return page.Tracks
 }
 
-func buildSongInfo(tracklist []spotify.PlaylistTrack) map[spotify.ID]song {
+func (pg *playlist_getter) buildBasicSongInfo(playlistID string) map[spotify.ID]song {
+	tracklist := pg.getPlaylistInfo(playlistID)
 	songInfo := make(map[spotify.ID]song)
 
 	for _, trackObj := range tracklist {
@@ -46,9 +52,9 @@ func buildSongInfo(tracklist []spotify.PlaylistTrack) map[spotify.ID]song {
 	return songInfo
 }
 
-func addAudioFeatures(client *spotify.Client, songInfo map[spotify.ID]song) map[spotify.ID]song {
+func (pg *playlist_getter) addAudioFeatures(songInfo map[spotify.ID]song) map[spotify.ID]song {
 	trackIDs := assembleTrackIDs(songInfo)
-	tracksData, err := client.GetAudioFeatures(trackIDs...)
+	tracksData, err := pg.client.GetAudioFeatures(trackIDs...)
 	if err != nil {
 		log.Fatalf("couldn't get tracks info: %v", err)
 	}
@@ -87,10 +93,9 @@ func assembleTrackIDs(songInfo map[spotify.ID]song) []spotify.ID {
 }
 
 func main() {
-	client := clientCredentialsAuth()
-	tracklist := getPlaylistInfo(client, releaseRadarId)
-	songInfo := buildSongInfo(tracklist)
-	songInfo = addAudioFeatures(client, songInfo)
+	getter := playlist_getter{client: clientCredentialsAuth()}
+	songInfo := getter.buildBasicSongInfo(releaseRadarId)
+	songInfo = getter.addAudioFeatures(songInfo)
 
 	printSongInfo(songInfo)
 }
