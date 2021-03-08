@@ -11,8 +11,13 @@ import (
 const releaseRadarId = "37i9dQZEVXblHXYINKqgaL"
 const discoverWeeklyId = "37i9dQZEVXcHTLYCsuh2O5"
 
-type playlist_getter struct {
-	client *spotify.Client
+type PlaylistGetter struct {
+	client spotifyClient
+}
+
+type spotifyClient interface {
+	GetPlaylistTracks(playlistID spotify.ID) (*spotify.PlaylistTrackPage, error)
+	GetAudioFeatures(ids ...spotify.ID) ([]*spotify.AudioFeatures, error)
 }
 
 type song struct {
@@ -31,7 +36,7 @@ type song struct {
 	Valence          float32
 }
 
-func (pg *playlist_getter) getPlaylistInfo(playlistID string) []spotify.PlaylistTrack {
+func (pg *PlaylistGetter) getPlaylistInfo(playlistID string) []spotify.PlaylistTrack {
 	page, err := pg.client.GetPlaylistTracks(spotify.ID(playlistID))
 	if err != nil {
 		log.Fatalf("couldn't get features playlists: %v", err)
@@ -40,7 +45,7 @@ func (pg *playlist_getter) getPlaylistInfo(playlistID string) []spotify.Playlist
 	return page.Tracks
 }
 
-func (pg *playlist_getter) buildBasicSongInfo(playlistID string) map[spotify.ID]song {
+func (pg *PlaylistGetter) buildBasicSongInfo(playlistID string) map[spotify.ID]song {
 	tracklist := pg.getPlaylistInfo(playlistID)
 	songInfo := make(map[spotify.ID]song)
 
@@ -52,7 +57,7 @@ func (pg *playlist_getter) buildBasicSongInfo(playlistID string) map[spotify.ID]
 	return songInfo
 }
 
-func (pg *playlist_getter) addAudioFeatures(songInfo map[spotify.ID]song) map[spotify.ID]song {
+func (pg *PlaylistGetter) addAudioFeatures(songInfo map[spotify.ID]song) map[spotify.ID]song {
 	trackIDs := assembleTrackIDs(songInfo)
 	tracksData, err := pg.client.GetAudioFeatures(trackIDs...)
 	if err != nil {
@@ -93,7 +98,7 @@ func assembleTrackIDs(songInfo map[spotify.ID]song) []spotify.ID {
 }
 
 func main() {
-	getter := playlist_getter{client: clientCredentialsAuth()}
+	getter := PlaylistGetter{client: clientCredentialsAuth()}
 	songInfo := getter.buildBasicSongInfo(releaseRadarId)
 	songInfo = getter.addAudioFeatures(songInfo)
 
