@@ -7,7 +7,7 @@ import (
 	"github.com/zmb3/spotify"
 )
 
-func spotifyArtists() []spotify.SimpleArtist {
+func theCureArtists() []spotify.SimpleArtist {
 	artists := make([]spotify.SimpleArtist, 0, 1)
 	artists = append(artists, spotify.SimpleArtist{
 		Name:         "The Cure",
@@ -19,6 +19,23 @@ func spotifyArtists() []spotify.SimpleArtist {
 	return artists
 }
 
+func distintegrationAlbum() spotify.SimpleAlbum {
+	return spotify.SimpleAlbum{
+		Name:                 "Disintegration",
+		Artists:              []spotify.SimpleArtist{},
+		AlbumGroup:           "",
+		AlbumType:            "",
+		ID:                   spotify.ID("hello 3"),
+		URI:                  "",
+		AvailableMarkets:     []string{},
+		Endpoint:             "",
+		Images:               []spotify.Image{},
+		ExternalURLs:         map[string]string{},
+		ReleaseDate:          "",
+		ReleaseDatePrecision: "",
+	}
+}
+
 func spotifyTracks() []spotify.PlaylistTrack {
 	tracks := make([]spotify.PlaylistTrack, 0, 1)
 	tracks = append(tracks, spotify.PlaylistTrack{
@@ -27,7 +44,7 @@ func spotifyTracks() []spotify.PlaylistTrack {
 		IsLocal: false,
 		Track: spotify.FullTrack{
 			SimpleTrack: spotify.SimpleTrack{
-				Artists:          spotifyArtists(),
+				Artists:          theCureArtists(),
 				AvailableMarkets: []string{},
 				DiscNumber:       0,
 				Duration:         0,
@@ -37,23 +54,10 @@ func spotifyTracks() []spotify.PlaylistTrack {
 				ID:               spotify.ID("hello 2"),
 				Name:             "Pictures Of You",
 				PreviewURL:       "",
-				TrackNumber:      0,
+				TrackNumber:      2,
 				URI:              "",
 			},
-			Album: spotify.SimpleAlbum{
-				Name:                 "Disintegration",
-				Artists:              []spotify.SimpleArtist{},
-				AlbumGroup:           "",
-				AlbumType:            "",
-				ID:                   spotify.ID("hello 3"),
-				URI:                  "",
-				AvailableMarkets:     []string{},
-				Endpoint:             "",
-				Images:               []spotify.Image{},
-				ExternalURLs:         map[string]string{},
-				ReleaseDate:          "",
-				ReleaseDatePrecision: "",
-			},
+			Album: distintegrationAlbum(),
 			ExternalIDs: map[string]string{},
 			Popularity:  0,
 			IsPlayable:  new(bool),
@@ -95,9 +99,9 @@ func (m *mockSpotifyClient) GetAudioFeatures(ids ...spotify.ID) ([]*spotify.Audi
 	return audioFeatures, nil
 }
 
-func basicSongInfo() map[spotify.ID]song {
-	data := make(map[spotify.ID]song, 1)
-	data[spotify.ID("hello 2")] = song{
+func basicSongInfo() map[spotify.ID]Song {
+	data := make(map[spotify.ID]Song, 1)
+	data[spotify.ID("hello 2")] = Song{
 		ID:         "hello 2",
 		Name:       "Pictures Of You",
 		ArtistName: "The Cure",
