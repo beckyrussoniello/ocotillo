@@ -99,8 +99,8 @@ func (m *mockSpotifyClient) GetAudioFeatures(ids ...spotify.ID) ([]*spotify.Audi
 	return audioFeatures, nil
 }
 
-func basicSongInfo() map[spotify.ID]Song {
-	data := make(map[spotify.ID]Song, 1)
+func basicSongInfo() PlaylistData {
+	data := make(PlaylistData, 1)
 	data[spotify.ID("hello 2")] = Song{
 		ID:         "hello 2",
 		Name:       "Pictures Of You",

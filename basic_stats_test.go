@@ -5,8 +5,8 @@ import (
 	"github.com/zmb3/spotify"
 )
 
-func mockPlaylistData() map[spotify.ID]Song {
-	playlist := make(map[spotify.ID]Song)
+func mockPlaylistData() PlaylistData {
+	playlist := make(PlaylistData)
 	playlist[spotify.ID("pics of you")] = Song{ Valence: 50}
 	playlist[spotify.ID("fascination st")] = Song{ Valence: 45}
 	playlist[spotify.ID("lullaby")] = Song{ Valence: 30}

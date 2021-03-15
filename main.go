@@ -10,6 +10,7 @@ import (
 
 const releaseRadarId = "37i9dQZEVXblHXYINKqgaL"
 const discoverWeeklyId = "37i9dQZEVXcHTLYCsuh2O5"
+const meditationId = "1xQ9JBNlCSza7iZ4AXhnIL"
 
 type PlaylistGetter struct {
 	client spotifyClient
@@ -36,6 +37,8 @@ type Song struct {
 	Valence          float32
 }
 
+type PlaylistData map[spotify.ID]Song
+
 func (pg *PlaylistGetter) getPlaylistInfo(playlistID string) []spotify.PlaylistTrack {
 	page, err := pg.client.GetPlaylistTracks(spotify.ID(playlistID))
 	if err != nil {
@@ -45,9 +48,9 @@ func (pg *PlaylistGetter) getPlaylistInfo(playlistID string) []spotify.PlaylistT
 	return page.Tracks
 }
 
-func (pg *PlaylistGetter) buildBasicSongInfo(playlistID string) map[spotify.ID]Song {
+func (pg *PlaylistGetter) buildBasicSongInfo(playlistID string) PlaylistData {
 	tracklist := pg.getPlaylistInfo(playlistID)
-	songInfo := make(map[spotify.ID]Song)
+	songInfo := make(PlaylistData)
 
 	for _, trackObj := range tracklist {
 		track := trackObj.Track
@@ -57,7 +60,7 @@ func (pg *PlaylistGetter) buildBasicSongInfo(playlistID string) map[spotify.ID]S
 	return songInfo
 }
 
-func (pg *PlaylistGetter) addAudioFeatures(songInfo map[spotify.ID]Song) map[spotify.ID]Song {
+func (pg *PlaylistGetter) addAudioFeatures(songInfo PlaylistData) PlaylistData {
 	trackIDs := assembleTrackIDs(songInfo)
 	tracksData, err := pg.client.GetAudioFeatures(trackIDs...)
 	if err != nil {
@@ -78,7 +81,7 @@ func (pg *PlaylistGetter) addAudioFeatures(songInfo map[spotify.ID]Song) map[spo
 	return songInfo
 }
 
-func printSongInfo(songsMap map[spotify.ID]Song) {
+func printSongInfo(songsMap []Song) {
 	fmt.Printf("ID | Name | Artist | Album | Danceability | Duration | Energy | Instrumentalness | Liveness | Popularity | Speechiness | Tempo | Valence\n")
 	for _, song := range songsMap {
 		value := reflect.ValueOf(song)
@@ -89,7 +92,7 @@ func printSongInfo(songsMap map[spotify.ID]Song) {
 	}
 }
 
-func assembleTrackIDs(songInfo map[spotify.ID]Song) []spotify.ID {
+func assembleTrackIDs(songInfo PlaylistData) []spotify.ID {
 	trackIDs := make([]spotify.ID, 0, len(songInfo))
 	for key, _ := range songInfo {
 		trackIDs = append(trackIDs, key)
@@ -99,8 +102,7 @@ func assembleTrackIDs(songInfo map[spotify.ID]Song) []spotify.ID {
 
 func main() {
 	getter := PlaylistGetter{client: clientCredentialsAuth()}
-	songInfo := getter.buildBasicSongInfo(releaseRadarId)
+	songInfo := getter.buildBasicSongInfo(meditationId)
 	songInfo = getter.addAudioFeatures(songInfo)
-	sortByValence(songInfo)
-	printSongInfo(songInfo)
+	valenceReport(songInfo)
 }
