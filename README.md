@@ -8,3 +8,4 @@ Right now, it:
 4) Makes a second API call to get more detailed "audio features" of all the songs
 5) Further populates the data structure with these additional fields
 6) Prints out all of the playlist's track data with some formatting
+7) Creates a ValenceReport struct, with basic stats methods (min, max, sum, mean, median) and prints it out
