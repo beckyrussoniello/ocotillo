@@ -104,5 +104,5 @@ func main() {
 	getter := PlaylistGetter{client: clientCredentialsAuth()}
 	songInfo := getter.buildBasicSongInfo(meditationId)
 	songInfo = getter.addAudioFeatures(songInfo)
-	valenceReport(songInfo)
+	printValenceReport(songInfo)
 }
