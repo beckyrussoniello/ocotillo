@@ -102,7 +102,7 @@ func assembleTrackIDs(songInfo PlaylistData) []spotify.ID {
 
 func main() {
 	getter := PlaylistGetter{client: clientCredentialsAuth()}
-	songInfo := getter.buildBasicSongInfo(meditationId)
+	songInfo := getter.buildBasicSongInfo(discoverWeeklyId)
 	songInfo = getter.addAudioFeatures(songInfo)
-	printValenceReport(songInfo)
+	printStatReport(songInfo, "Energy")
 }

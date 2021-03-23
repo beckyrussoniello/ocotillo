@@ -24,7 +24,7 @@ func mockSongSlice() []Song {
 }
 
 func Test_sortByValence(t *testing.T) {
-	sorted := sortByValence(mockPlaylistData())
+	sorted := sortByField(mockPlaylistData(), "Valence")
 	assertEqual(t, sorted[0].Valence, float32(30), "")
 	assertEqual(t, sorted[1].Valence, float32(45), "")
 	assertEqual(t, sorted[2].Valence, float32(50), "")
