@@ -98,9 +98,10 @@ func assembleTrackIDs(songInfo map[spotify.ID]song) []spotify.ID {
 }
 
 func main() {
-	getter := PlaylistGetter{client: clientCredentialsAuth()}
+	/*getter := PlaylistGetter{client: clientCredentialsAuth()}
 	songInfo := getter.buildBasicSongInfo(releaseRadarId)
 	songInfo = getter.addAudioFeatures(songInfo)
 
-	printSongInfo(songInfo)
+	printSongInfo(songInfo)*/
+	getAllAlbumsByLabel("ghostly international")
 }
