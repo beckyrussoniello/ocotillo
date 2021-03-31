@@ -12,13 +12,19 @@ const releaseRadarId = "37i9dQZEVXblHXYINKqgaL"
 const discoverWeeklyId = "37i9dQZEVXcHTLYCsuh2O5"
 const meditationId = "1xQ9JBNlCSza7iZ4AXhnIL"
 
-type PlaylistGetter struct {
+var defaultChunkSize = 100
+
+type SpotifyAPI struct {
 	client spotifyClient
 }
 
 type spotifyClient interface {
 	GetPlaylistTracks(playlistID spotify.ID) (*spotify.PlaylistTrackPage, error)
 	GetAudioFeatures(ids ...spotify.ID) ([]*spotify.AudioFeatures, error)
+	CreatePlaylistForUser(userID, playlistName, description string, public bool) (*spotify.FullPlaylist, error)
+	AddTracksToPlaylist(playlistID spotify.ID, trackIDs ...spotify.ID) (snapshotID string, err error)
+	SearchOpt(query string, t spotify.SearchType, opt *spotify.Options) (*spotify.SearchResult, error)
+	GetAlbumsOpt(opt *spotify.Options, ids ...spotify.ID) ([]*spotify.FullAlbum, error)
 }
 
 type Song struct {
@@ -26,6 +32,7 @@ type Song struct {
 	Name             string
 	ArtistName       string
 	AlbumName        string
+	ReleaseDate      string
 	Danceability     float32
 	Duration         int
 	Energy           float32
@@ -37,10 +44,10 @@ type Song struct {
 	Valence          float32
 }
 
-type PlaylistData map[spotify.ID]Song
+type SongSet map[spotify.ID]Song
 
-func (pg *PlaylistGetter) getPlaylistInfo(playlistID string) []spotify.PlaylistTrack {
-	page, err := pg.client.GetPlaylistTracks(spotify.ID(playlistID))
+func (sp *SpotifyAPI) getPlaylistInfo(playlistID string) []spotify.PlaylistTrack {
+	page, err := sp.client.GetPlaylistTracks(spotify.ID(playlistID))
 	if err != nil {
 		log.Fatalf("couldn't get features playlists: %v", err)
 	}
@@ -48,9 +55,9 @@ func (pg *PlaylistGetter) getPlaylistInfo(playlistID string) []spotify.PlaylistT
 	return page.Tracks
 }
 
-func (pg *PlaylistGetter) buildBasicSongInfo(playlistID string) PlaylistData {
-	tracklist := pg.getPlaylistInfo(playlistID)
-	songInfo := make(PlaylistData)
+func (sp *SpotifyAPI) buildBasicSongInfo(playlistID string) SongSet {
+	tracklist := sp.getPlaylistInfo(playlistID)
+	songInfo := make(SongSet)
 
 	for _, trackObj := range tracklist {
 		track := trackObj.Track
@@ -60,50 +67,71 @@ func (pg *PlaylistGetter) buildBasicSongInfo(playlistID string) PlaylistData {
 	return songInfo
 }
 
-func (pg *PlaylistGetter) addAudioFeatures(songInfo PlaylistData) PlaylistData {
-	trackIDs := assembleTrackIDs(songInfo)
-	tracksData, err := pg.client.GetAudioFeatures(trackIDs...)
-	if err != nil {
-		log.Fatalf("couldn't get tracks info: %v", err)
+func (sp *SpotifyAPI) addAudioFeatures(songInfo SongSet) SongSet {
+	trackIDChunks := assembleTrackIDs(songInfo, defaultChunkSize)
+	for _, trackIDs := range trackIDChunks {
+		tracksData, err := sp.client.GetAudioFeatures(trackIDs...)
+
+		if err != nil {
+			fmt.Println("--ERROR--")
+			fmt.Println(len(trackIDs), "track ids passed in")
+			log.Fatalf("couldn't get audio features: %v", err)
+		}
+		for _, track := range tracksData {
+			song := songInfo[track.ID]
+			song.Danceability = track.Danceability
+			song.Duration = track.Duration
+			song.Energy = track.Energy
+			song.Instrumentalness = track.Instrumentalness
+			song.Liveness = track.Liveness
+			song.Speechiness = track.Speechiness
+			song.Tempo = int(track.Tempo)
+			song.Valence = track.Valence
+			songInfo[track.ID] = song
+			fmt.Println(song)
+		}
 	}
-	for _, track := range tracksData {
-		song := songInfo[track.ID]
-		song.Danceability = track.Danceability
-		song.Duration = track.Duration
-		song.Energy = track.Energy
-		song.Instrumentalness = track.Instrumentalness
-		song.Liveness = track.Liveness
-		song.Speechiness = track.Speechiness
-		song.Tempo = int(track.Tempo)
-		song.Valence = track.Valence
-		songInfo[track.ID] = song
-	}
+
 	return songInfo
 }
 
 func printSongInfo(songsMap []Song) {
-	fmt.Printf("ID | Name | Artist | Album | Danceability | Duration | Energy | Instrumentalness | Liveness | Popularity | Speechiness | Tempo | Valence\n")
+	fmt.Printf("ID | Name | Artist | Album | Release Date | Danceability | Duration | Energy | Instrumentalness | Liveness | Popularity | Speechiness | Tempo | Valence\n")
 	for _, song := range songsMap {
 		value := reflect.ValueOf(song)
 		for attr := 0; attr < value.NumField(); attr++ {
 			fmt.Printf("%v | ", value.Field(attr).Interface())
 		}
 		fmt.Println()
+
 	}
 }
 
-func assembleTrackIDs(songInfo PlaylistData) []spotify.ID {
-	trackIDs := make([]spotify.ID, 0, len(songInfo))
-	for key, _ := range songInfo {
-		trackIDs = append(trackIDs, key)
+func assembleTrackIDs(songInfo SongSet, chunkSize int) [][]spotify.ID {
+	allChunks := make([][]spotify.ID, 0, (len(songInfo)/chunkSize)+1)
+	batchKeys := make([]spotify.ID, 0, chunkSize)
+
+	for k := range songInfo {
+		fmt.Println(k)
+		batchKeys = append(batchKeys, k)
+		if len(batchKeys) == chunkSize {
+			allChunks = append(allChunks, batchKeys)
+			batchKeys = batchKeys[:0]
+		}
 	}
-	return trackIDs
+
+	if len(batchKeys) > 0 {
+		allChunks = append(allChunks, batchKeys)
+	}
+
+	return allChunks
 }
 
 func main() {
-	/*getter := PlaylistGetter{client: clientCredentialsAuth()}
-	songInfo := getter.buildBasicSongInfo(discoverWeeklyId)
+	/*getter := SpotifyAPI{client: clientCredentialsAuth()}
+	songInfo := getter.buildBasicSongInfo(meditationId)
 	songInfo = getter.addAudioFeatures(songInfo)
 	printStatReport(songInfo, "Energy")*/
-	getAllAlbumsByLabel("ghostly international")
+	//getAllAlbumsByLabel("ghostly international")
+	createLabelPlaylist("Peek-a-boo", "All")
 }

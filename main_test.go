@@ -57,7 +57,7 @@ func spotifyTracks() []spotify.PlaylistTrack {
 				TrackNumber:      2,
 				URI:              "",
 			},
-			Album: distintegrationAlbum(),
+			Album:       distintegrationAlbum(),
 			ExternalIDs: map[string]string{},
 			Popularity:  0,
 			IsPlayable:  new(bool),
@@ -99,13 +99,30 @@ func (m *mockSpotifyClient) GetAudioFeatures(ids ...spotify.ID) ([]*spotify.Audi
 	return audioFeatures, nil
 }
 
-func basicSongInfo() PlaylistData {
-	data := make(PlaylistData, 1)
+func (m *mockSpotifyClient) CreatePlaylistForUser(userID, playlistName, description string, public bool) (*spotify.FullPlaylist, error) {
+	return &spotify.FullPlaylist{}, nil
+}
+
+func (m *mockSpotifyClient) AddTracksToPlaylist(playlistID spotify.ID, trackIDs ...spotify.ID) (snapshotID string, err error) {
+	return "", nil
+}
+
+func (m *mockSpotifyClient) SearchOpt(query string, t spotify.SearchType, opt *spotify.Options) (*spotify.SearchResult, error) {
+	return &spotify.SearchResult{}, nil
+}
+
+func (m *mockSpotifyClient) GetAlbumsOpt(opt *spotify.Options, ids ...spotify.ID) ([]*spotify.FullAlbum, error) {
+	return make([]*spotify.FullAlbum, 0), nil
+}
+
+func basicSongInfo() SongSet {
+	data := make(SongSet, 1)
 	data[spotify.ID("hello 2")] = Song{
-		ID:         "hello 2",
-		Name:       "Pictures Of You",
-		ArtistName: "The Cure",
-		AlbumName:  "Disintegration",
+		ID:          "hello 2",
+		Name:        "Pictures Of You",
+		ArtistName:  "The Cure",
+		AlbumName:   "Disintegration",
+		ReleaseDate: "5-2-1989",
 	}
 	return data
 }
@@ -122,7 +139,7 @@ func assertEqual(t *testing.T, a interface{}, b interface{}, message string) {
 
 func Test_buildBasicSongInfo(t *testing.T) {
 	client := mockSpotifyClient{}
-	pg := PlaylistGetter{client: &client}
+	pg := SpotifyAPI{client: &client}
 	songInfo := pg.buildBasicSongInfo("fake playlist id")
 	assertEqual(t, len(songInfo), len(spotifyTracks()), "")
 	assertEqual(t, songInfo[spotify.ID("hello 2")].Name, "Pictures Of You", "")
@@ -132,11 +149,22 @@ func Test_buildBasicSongInfo(t *testing.T) {
 
 func Test_addAudioFeatures(t *testing.T) {
 	client := mockSpotifyClient{}
-	pg := PlaylistGetter{client: &client}
+	pg := SpotifyAPI{client: &client}
 	songInfo := pg.addAudioFeatures(basicSongInfo())
 	fmt.Println(songInfo)
 	assertEqual(t, len(songInfo), len(spotifyTracks()), "")
 	assertEqual(t, songInfo[spotify.ID("hello 2")].Name, "Pictures Of You", "")
 	assertEqual(t, int(songInfo[spotify.ID("hello 2")].Energy), 35, "")
 	assertEqual(t, int(songInfo[spotify.ID("hello 2")].Instrumentalness), 40, "")
+}
+
+func Test_assembleTrackIDs(t *testing.T) {
+	songSet := make(SongSet, 10)
+	for i := 0; i < 10; i++ {
+		spotifyID := spotify.ID(fmt.Sprintf("hello %v", i))
+		songSet[spotifyID] = Song{}
+	}
+	trackIDs := assembleTrackIDs(songSet, 3)
+	assertEqual(t, len(trackIDs), 4, "")
+	assertEqual(t, len(trackIDs[0]), 3, "")
 }

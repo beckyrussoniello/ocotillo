@@ -19,9 +19,9 @@ func (a ByField) Less(i, j int) bool {
 }
 func (a ByField) Swap(i, j int) { a.songSlice[i], a.songSlice[j] = a.songSlice[j], a.songSlice[i] }
 
-func sortByField(playlistData PlaylistData, field string) []Song {
-	songSlice := make([]Song, 0, len(playlistData))
-	for _, v := range playlistData {
+func sortByField(songSet SongSet, field string) []Song {
+	songSlice := make([]Song, 0, len(songSet))
+	for _, v := range songSet {
 		songSlice = append(songSlice, v)
 	}
 	sort.Sort(ByField{songSlice, field})
@@ -69,7 +69,7 @@ func (sr *StatReport) print() {
 	printSongInfo(sr.songSlice)
 }
 
-func printStatReport(playlistData PlaylistData, fieldName string) {
-	vr := StatReport{sortByField(playlistData, fieldName), fieldName}
+func printStatReport(songSet SongSet, fieldName string) {
+	vr := StatReport{sortByField(songSet, fieldName), fieldName}
 	vr.print()
 }

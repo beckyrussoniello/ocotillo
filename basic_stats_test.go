@@ -6,8 +6,8 @@ import (
 	"github.com/zmb3/spotify"
 )
 
-func mockPlaylistData() PlaylistData {
-	playlist := make(PlaylistData)
+func mockPlaylistData() SongSet {
+	playlist := make(SongSet)
 	playlist[spotify.ID("pics of you")] = Song{Valence: 50}
 	playlist[spotify.ID("fascination st")] = Song{Valence: 45}
 	playlist[spotify.ID("lullaby")] = Song{Valence: 30}
@@ -63,6 +63,6 @@ func Example_printValenceReport() {
 	playlistData := basicSongInfo()
 	printValenceReport(playlistData)
 	// Output: Valence Report | Min: 0 | Max: 0 | Mean: 0 | Median: 0
-	// ID | Name | Artist | Album | Danceability | Duration | Energy | Instrumentalness | Liveness | Popularity | Speechiness | Tempo | Valence
-	// hello 2 | Pictures Of You | The Cure | Disintegration | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+	// ID | Name | Artist | Album | Release Date | Danceability | Duration | Energy | Instrumentalness | Liveness | Popularity | Speechiness | Tempo | Valence
+	// hello 2 | Pictures Of You | The Cure | Disintegration | 5-2-1989 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 }
