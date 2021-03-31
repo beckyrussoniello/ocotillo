@@ -101,8 +101,9 @@ func assembleTrackIDs(songInfo PlaylistData) []spotify.ID {
 }
 
 func main() {
-	getter := PlaylistGetter{client: clientCredentialsAuth()}
+	/*getter := PlaylistGetter{client: clientCredentialsAuth()}
 	songInfo := getter.buildBasicSongInfo(discoverWeeklyId)
 	songInfo = getter.addAudioFeatures(songInfo)
-	printStatReport(songInfo, "Energy")
+	printStatReport(songInfo, "Energy")*/
+	getAllAlbumsByLabel("ghostly international")
 }
