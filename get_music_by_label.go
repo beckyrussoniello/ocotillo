@@ -32,14 +32,14 @@ func (sp SpotifyAPI) getAllAlbumsByLabel(recordLabelName string) *SongSet {
 			gotAllResults: false,
 		}
 		albumsByYearSpan.getAlbumsData()
-		sp.getTracksForAlbums(&albumsByYearSpan.albumIDs, allTracks_SongSet)
+		albumsByYearSpan.getTracksForAlbums(allTracks_SongSet)
 	}
 
 	sp.addAudioFeatures(allTracks_SongSet)
 	return &allTracks_SongSet
 }
 
-func (albs AlbumsByYearSpan) getAlbumsData() {
+func (albs *AlbumsByYearSpan) getAlbumsData() {
 	for offset := 0; offset < offsetMax && !albs.gotAllResults; offset += maxLimit {
 		searchQuery := fmt.Sprintf("label:\"%v\" year:%v", albs.label, albs.years)
 		options := &spotify.Options{Limit: &maxLimit, Offset: &offset}
@@ -48,23 +48,23 @@ func (albs AlbumsByYearSpan) getAlbumsData() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		recordAlbumIDs(albs.years, &albs.albumIDs, results)
+		albs.recordAlbumIDs(results)
 		if results.Albums.Total <= (offset + maxLimit) {
 			albs.gotAllResults = true
 		}
 	}
 }
 
-func (sp *SpotifyAPI) getTracksForAlbums(albumIDs *[]spotify.ID, trackInfo SongSet) SongSet {
+func (albs *AlbumsByYearSpan) getTracksForAlbums(trackInfo SongSet) SongSet {
 	var albumsPerRequest = 20
-	for offset := 0; offset < len(*albumIDs); offset += albumsPerRequest {
+	for offset := 0; offset < len(albs.albumIDs); offset += albumsPerRequest {
 		var endIndex = offset + albumsPerRequest
-		if len(*albumIDs) < endIndex {
-			endIndex = len(*albumIDs)
+		if len(albs.albumIDs) < endIndex {
+			endIndex = len(albs.albumIDs)
 		}
-		var albumIDsForReq = (*albumIDs)[offset:endIndex]
+		var albumIDsForReq = albs.albumIDs[offset:endIndex]
 		options := &spotify.Options{Limit: &albumsPerRequest, Offset: &offset}
-		var albumsData, _ = sp.client.GetAlbumsOpt(options, albumIDsForReq...)
+		var albumsData, _ = albs.api.client.GetAlbumsOpt(options, albumIDsForReq...)
 
 		for _, album := range albumsData {
 			for _, track := range album.Tracks.Tracks {
@@ -75,10 +75,10 @@ func (sp *SpotifyAPI) getTracksForAlbums(albumIDs *[]spotify.ID, trackInfo SongS
 	return trackInfo
 }
 
-func recordAlbumIDs(years string, albumIDs *[]spotify.ID, results *spotify.SearchResult) {
+func (albs *AlbumsByYearSpan) recordAlbumIDs(results *spotify.SearchResult) {
 	if results.Albums != nil {
 		for _, item := range results.Albums.Albums {
-			*albumIDs = append(*albumIDs, item.ID)
+			albs.albumIDs = append(albs.albumIDs, item.ID)
 		}
 	}
 }

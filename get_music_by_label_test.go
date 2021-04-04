@@ -14,7 +14,7 @@ func simpleArtistSlice() []spotify.SimpleArtist {
 
 func simpleAlbumPage() *spotify.SimpleAlbumPage {
 	albumSlice := make([]spotify.SimpleAlbum, 0, 1)
-	albumSlice = append(albumSlice, spotify.SimpleAlbum{Name: "Disintegration"})
+	albumSlice = append(albumSlice, spotify.SimpleAlbum{Name: "Disintegration", ID: spotify.ID("iddd")})
 	albumPage := spotify.SimpleAlbumPage{
 		Albums: albumSlice,
 	}
@@ -35,8 +35,7 @@ func Test_getAlbumsData(t *testing.T) {
 }
 
 func Test_recordAlbumIDs(t *testing.T) {
-	years := "2012-2021"
-	albumIDs := make([]spotify.ID, 0, 3)
+	albs := AlbumsByYearSpan{albumIDs: make([]spotify.ID, 0, 3)}
 	results := spotify.SearchResult{Albums: &spotify.SimpleAlbumPage{
 		Albums: make([]spotify.SimpleAlbum, 0, 3),
 	}}
@@ -47,7 +46,7 @@ func Test_recordAlbumIDs(t *testing.T) {
 		spotify.SimpleAlbum{ID: spotify.ID("heeyy 3"), Artists: simpleArtistSlice()},
 	)
 
-	recordAlbumIDs(years, &albumIDs, &results)
-	assertEqual(t, len(albumIDs), 3, "")
-	assertEqual(t, albumIDs[0], spotify.ID("heeyy 1"), "")
+	albs.recordAlbumIDs(&results)
+	assertEqual(t, len(albs.albumIDs), 3, "")
+	assertEqual(t, albs.albumIDs[0], spotify.ID("heeyy 1"), "")
 }
