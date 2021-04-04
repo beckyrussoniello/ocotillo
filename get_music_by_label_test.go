@@ -22,6 +22,16 @@ func simpleAlbumPage() *spotify.SimpleAlbumPage {
 	return &albumPage
 }
 
+func Test_getAllAlbumsByLabel(t *testing.T) {
+	sp := SpotifyAPI{client: &mockSpotifyClient{}}
+	recordLabelName := "Test-it-all"
+	testSongSet := sp.getAllAlbumsByLabel(recordLabelName)
+	assertEqual(t, len(*testSongSet), 20, "")
+	assertEqual(t, (*testSongSet)[spotify.ID("0")].ReleaseDate, "3/1/2000", "")
+	assertEqual(t, (*testSongSet)[spotify.ID("0")].Energy, float32(35), "")
+	assertEqual(t, (*testSongSet)[spotify.ID("0")].Liveness, float32(10), "")
+}
+
 func Test_getAlbumsData(t *testing.T) {
 	albumsByYearSpan := AlbumsByYearSpan{
 		years:         "2012-2021",

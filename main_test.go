@@ -77,25 +77,28 @@ func (m *mockSpotifyClient) GetPlaylistTracks(playlistID spotify.ID) (*spotify.P
 
 func (m *mockSpotifyClient) GetAudioFeatures(ids ...spotify.ID) ([]*spotify.AudioFeatures, error) {
 	audioFeatures := make([]*spotify.AudioFeatures, 0, 1)
-	audioFeatures = append(audioFeatures, &spotify.AudioFeatures{
-		Acousticness:     5,
-		AnalysisURL:      "",
-		Danceability:     0,
-		Duration:         0,
-		Energy:           35,
-		ID:               "hello 2",
-		Instrumentalness: 40,
-		Key:              0,
-		Liveness:         10,
-		Loudness:         0,
-		Mode:             0,
-		Speechiness:      0,
-		Tempo:            0,
-		TimeSignature:    0,
-		TrackURL:         "",
-		URI:              "",
-		Valence:          0,
-	})
+	for _, id := range ids {
+		audioFeatures = append(audioFeatures, &spotify.AudioFeatures{
+			Acousticness:     5,
+			AnalysisURL:      "",
+			Danceability:     0,
+			Duration:         0,
+			Energy:           35,
+			ID:               id,
+			Instrumentalness: 40,
+			Key:              0,
+			Liveness:         10,
+			Loudness:         0,
+			Mode:             0,
+			Speechiness:      0,
+			Tempo:            0,
+			TimeSignature:    0,
+			TrackURL:         "",
+			URI:              "",
+			Valence:          0,
+		})
+	}
+
 	return audioFeatures, nil
 }
 

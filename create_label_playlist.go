@@ -17,7 +17,7 @@ func createLabelPlaylist(labelName string, playlistType string) {
 	if playlistType == "Top" {
 		title = title + " - Top Tracks"
 	}
-	// note: should handle error case below, don't just throw away
+
 	playlist, err := sp.client.CreatePlaylistForUser(userID, title, playlistDescription(labelName, playlistType), true)
 	if err != nil {
 		log.Fatal(err)
