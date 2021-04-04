@@ -12,6 +12,28 @@ func simpleArtistSlice() []spotify.SimpleArtist {
 	return artistSlice
 }
 
+func simpleAlbumPage() *spotify.SimpleAlbumPage {
+	albumSlice := make([]spotify.SimpleAlbum, 0, 1)
+	albumSlice = append(albumSlice, spotify.SimpleAlbum{Name: "Disintegration"})
+	albumPage := spotify.SimpleAlbumPage{
+		Albums: albumSlice,
+	}
+	return &albumPage
+}
+
+func Test_getAlbumsData(t *testing.T) {
+	albumsByYearSpan := AlbumsByYearSpan{
+		years:         "2012-2021",
+		albumIDs:      make([]spotify.ID, 0, 10),
+		label:         "Fake Records",
+		api:           SpotifyAPI{client: &mockSpotifyClient{}},
+		gotAllResults: false,
+	}
+	albumsByYearSpan.getAlbumsData()
+	assertEqual(t, len(albumsByYearSpan.albumIDs), 1, "")
+	assertEqual(t, albumsByYearSpan.gotAllResults, true, "")
+}
+
 func Test_recordAlbumIDs(t *testing.T) {
 	years := "2012-2021"
 	albumIDs := make([]spotify.ID, 0, 3)

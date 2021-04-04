@@ -13,32 +13,46 @@ const offsetMax int = 950
 
 var yearSpans = []string{"1900-1971", "1972-1986", "1987-2001", "2002-2011", "2012-2021"}
 
+type AlbumsByYearSpan struct {
+	years         string
+	albumIDs      []spotify.ID
+	label         string
+	api           SpotifyAPI
+	gotAllResults bool
+}
+
 func (sp SpotifyAPI) getAllAlbumsByLabel(recordLabelName string) *SongSet {
-	var allTrackIDs SongSet = make(SongSet)
+	var allTracks_SongSet SongSet = make(SongSet)
 	for yearSpansIndex := 0; yearSpansIndex < len(yearSpans); yearSpansIndex++ {
-		gotAllResults := false
-		years := yearSpans[yearSpansIndex]
-		var albumIDs []spotify.ID = make([]spotify.ID, 0, 1000)
-
-		for offset := 0; offset < offsetMax && !gotAllResults; offset += maxLimit {
-			searchQuery := fmt.Sprintf("label:\"%v\" year:%v", recordLabelName, years)
-			options := &spotify.Options{Limit: &maxLimit, Offset: &offset}
-
-			results, err := sp.client.SearchOpt(searchQuery, spotify.SearchTypeAlbum, options)
-			if err != nil {
-				log.Fatal(err)
-			}
-			recordAlbumIDs(years, &albumIDs, results)
-			if results.Albums.Total <= (offset + maxLimit) {
-				gotAllResults = true
-			}
+		albumsByYearSpan := AlbumsByYearSpan{
+			years:         yearSpans[yearSpansIndex],
+			albumIDs:      make([]spotify.ID, 0, 1000),
+			label:         recordLabelName,
+			api:           sp,
+			gotAllResults: false,
 		}
-
-		sp.getTracksForAlbums(&albumIDs, allTrackIDs)
+		albumsByYearSpan.getAlbumsData()
+		sp.getTracksForAlbums(&albumsByYearSpan.albumIDs, allTracks_SongSet)
 	}
 
-	sp.addAudioFeatures(allTrackIDs)
-	return &allTrackIDs
+	sp.addAudioFeatures(allTracks_SongSet)
+	return &allTracks_SongSet
+}
+
+func (albs AlbumsByYearSpan) getAlbumsData() {
+	for offset := 0; offset < offsetMax && !albs.gotAllResults; offset += maxLimit {
+		searchQuery := fmt.Sprintf("label:\"%v\" year:%v", albs.label, albs.years)
+		options := &spotify.Options{Limit: &maxLimit, Offset: &offset}
+
+		results, err := albs.api.client.SearchOpt(searchQuery, spotify.SearchTypeAlbum, options)
+		if err != nil {
+			log.Fatal(err)
+		}
+		recordAlbumIDs(albs.years, &albs.albumIDs, results)
+		if results.Albums.Total <= (offset + maxLimit) {
+			albs.gotAllResults = true
+		}
+	}
 }
 
 func (sp *SpotifyAPI) getTracksForAlbums(albumIDs *[]spotify.ID, trackInfo SongSet) SongSet {
@@ -51,10 +65,8 @@ func (sp *SpotifyAPI) getTracksForAlbums(albumIDs *[]spotify.ID, trackInfo SongS
 		var albumIDsForReq = (*albumIDs)[offset:endIndex]
 		options := &spotify.Options{Limit: &albumsPerRequest, Offset: &offset}
 		var albumsData, _ = sp.client.GetAlbumsOpt(options, albumIDsForReq...)
-		fmt.Println(len(albumIDsForReq), "albums requested.", len(albumsData), "albums received.")
 
 		for _, album := range albumsData {
-			fmt.Println("Album", album.Name, "has", len(album.Tracks.Tracks), "tracks.")
 			for _, track := range album.Tracks.Tracks {
 				trackInfo[track.ID] = Song{ReleaseDate: album.ReleaseDate}
 			}
@@ -65,10 +77,8 @@ func (sp *SpotifyAPI) getTracksForAlbums(albumIDs *[]spotify.ID, trackInfo SongS
 
 func recordAlbumIDs(years string, albumIDs *[]spotify.ID, results *spotify.SearchResult) {
 	if results.Albums != nil {
-		fmt.Println("Albums (", years, "):")
 		for _, item := range results.Albums.Albums {
 			*albumIDs = append(*albumIDs, item.ID)
-			fmt.Println("   ", item.Artists[0].Name, "-", item.Name, " || ", item.ReleaseDate)
 		}
 	}
 }

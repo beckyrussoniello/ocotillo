@@ -108,7 +108,12 @@ func (m *mockSpotifyClient) AddTracksToPlaylist(playlistID spotify.ID, trackIDs 
 }
 
 func (m *mockSpotifyClient) SearchOpt(query string, t spotify.SearchType, opt *spotify.Options) (*spotify.SearchResult, error) {
-	return &spotify.SearchResult{}, nil
+	return &spotify.SearchResult{
+		Artists:   &spotify.FullArtistPage{},
+		Albums:    simpleAlbumPage(),
+		Playlists: &spotify.SimplePlaylistPage{},
+		Tracks:    &spotify.FullTrackPage{},
+	}, nil
 }
 
 func (m *mockSpotifyClient) GetAlbumsOpt(opt *spotify.Options, ids ...spotify.ID) ([]*spotify.FullAlbum, error) {
