@@ -117,7 +117,21 @@ func (m *mockSpotifyClient) SearchOpt(query string, t spotify.SearchType, opt *s
 }
 
 func (m *mockSpotifyClient) GetAlbumsOpt(opt *spotify.Options, ids ...spotify.ID) ([]*spotify.FullAlbum, error) {
-	return make([]*spotify.FullAlbum, 0), nil
+	return fullAlbumSlice(), nil
+}
+
+func fullAlbumSlice() []*spotify.FullAlbum {
+	albumSlice := make([]*spotify.FullAlbum, 0, 20)
+	for i := 0; i < 20; i++ {
+		id := spotify.ID(fmt.Sprintf("%v", i))
+		releaseDate := fmt.Sprintf("3/%v/2000", i+1)
+		fullAlbum := spotify.FullAlbum{
+			SimpleAlbum: spotify.SimpleAlbum{ReleaseDate: releaseDate},
+			Tracks:      spotify.SimpleTrackPage{Tracks: []spotify.SimpleTrack{{ID: id}}},
+		}
+		albumSlice = append(albumSlice, &fullAlbum)
+	}
+	return albumSlice
 }
 
 func basicSongInfo() SongSet {

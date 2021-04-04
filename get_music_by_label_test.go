@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/zmb3/spotify"
@@ -32,6 +33,20 @@ func Test_getAlbumsData(t *testing.T) {
 	albumsByYearSpan.getAlbumsData()
 	assertEqual(t, len(albumsByYearSpan.albumIDs), 1, "")
 	assertEqual(t, albumsByYearSpan.gotAllResults, true, "")
+}
+
+func Test_getTracksForAlbums(t *testing.T) {
+	albs := AlbumsByYearSpan{
+		api:      SpotifyAPI{client: &mockSpotifyClient{}},
+		albumIDs: make([]spotify.ID, 0, 20),
+	}
+	for i := 0; i < 20; i++ {
+		albs.albumIDs = append(albs.albumIDs, spotify.ID(fmt.Sprintf("%v", i)))
+	}
+	songSet := SongSet{}
+	albs.getTracksForAlbums(&songSet)
+	assertEqual(t, len(songSet), 20, "")
+	assertEqual(t, songSet[spotify.ID("0")].ReleaseDate, "3/1/2000", "")
 }
 
 func Test_recordAlbumIDs(t *testing.T) {

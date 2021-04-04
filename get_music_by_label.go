@@ -32,7 +32,7 @@ func (sp SpotifyAPI) getAllAlbumsByLabel(recordLabelName string) *SongSet {
 			gotAllResults: false,
 		}
 		albumsByYearSpan.getAlbumsData()
-		albumsByYearSpan.getTracksForAlbums(allTracks_SongSet)
+		albumsByYearSpan.getTracksForAlbums(&allTracks_SongSet)
 	}
 
 	sp.addAudioFeatures(allTracks_SongSet)
@@ -55,7 +55,7 @@ func (albs *AlbumsByYearSpan) getAlbumsData() {
 	}
 }
 
-func (albs *AlbumsByYearSpan) getTracksForAlbums(trackInfo SongSet) SongSet {
+func (albs *AlbumsByYearSpan) getTracksForAlbums(trackInfo *SongSet) *SongSet {
 	var albumsPerRequest = 20
 	for offset := 0; offset < len(albs.albumIDs); offset += albumsPerRequest {
 		var endIndex = offset + albumsPerRequest
@@ -65,10 +65,9 @@ func (albs *AlbumsByYearSpan) getTracksForAlbums(trackInfo SongSet) SongSet {
 		var albumIDsForReq = albs.albumIDs[offset:endIndex]
 		options := &spotify.Options{Limit: &albumsPerRequest, Offset: &offset}
 		var albumsData, _ = albs.api.client.GetAlbumsOpt(options, albumIDsForReq...)
-
 		for _, album := range albumsData {
 			for _, track := range album.Tracks.Tracks {
-				trackInfo[track.ID] = Song{ReleaseDate: album.ReleaseDate}
+				(*trackInfo)[track.ID] = Song{ReleaseDate: album.ReleaseDate}
 			}
 		}
 	}
