@@ -9,6 +9,7 @@ import (
 )
 
 var userID = "1211800245"
+var chunkSize = 100
 
 func createLabelPlaylist(labelName string, playlistType string) {
 	sp := SpotifyAPI{client: userAuth()}
@@ -22,11 +23,11 @@ func createLabelPlaylist(labelName string, playlistType string) {
 		log.Fatal(err)
 	}
 	allTracks := sp.getAllAlbumsByLabel(labelName)
-	trackChunks := assembleTrackIDs(*allTracks, 100)
+	trackChunks := trackIDChunks(*allTracks, chunkSize)
 	for _, chunk := range trackChunks {
-		for i := 0; i < len(chunk); i += 100 { // max trackIDs to add to playlist in one req
-			trackIDsForReq := make([]spotify.ID, 0, 100)
-			maxJ := 100 + i
+		for i := 0; i < len(chunk); i += chunkSize { // max trackIDs to add to playlist in one req
+			trackIDsForReq := make([]spotify.ID, 0, chunkSize)
+			maxJ := chunkSize + i
 			if len(chunk) < maxJ {
 				maxJ = len(chunk)
 			}

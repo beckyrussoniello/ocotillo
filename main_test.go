@@ -158,13 +158,13 @@ func Test_addAudioFeatures(t *testing.T) {
 	assertEqual(t, int(songInfo[spotify.ID("hello 2")].Instrumentalness), 40, "")
 }
 
-func Test_assembleTrackIDs(t *testing.T) {
+func Test_trackIDChunks(t *testing.T) {
 	songSet := make(SongSet, 10)
 	for i := 0; i < 10; i++ {
 		spotifyID := spotify.ID(fmt.Sprintf("hello %v", i))
 		songSet[spotifyID] = Song{}
 	}
-	trackIDs := assembleTrackIDs(songSet, 3)
+	trackIDs := trackIDChunks(songSet, 3)
 	assertEqual(t, len(trackIDs), 4, "")
 	assertEqual(t, len(trackIDs[0]), 3, "")
 }

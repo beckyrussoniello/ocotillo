@@ -68,7 +68,7 @@ func (sp *SpotifyAPI) buildBasicSongInfo(playlistID string) SongSet {
 }
 
 func (sp *SpotifyAPI) addAudioFeatures(songInfo SongSet) SongSet {
-	trackIDChunks := assembleTrackIDs(songInfo, defaultChunkSize)
+	trackIDChunks := trackIDChunks(songInfo, defaultChunkSize)
 	for _, trackIDs := range trackIDChunks {
 		tracksData, err := sp.client.GetAudioFeatures(trackIDs...)
 
@@ -107,7 +107,7 @@ func printSongInfo(songsMap []Song) {
 	}
 }
 
-func assembleTrackIDs(songInfo SongSet, chunkSize int) [][]spotify.ID {
+func trackIDChunks(songInfo SongSet, chunkSize int) [][]spotify.ID {
 	allChunks := make([][]spotify.ID, 0, (len(songInfo)/chunkSize)+1)
 	batchKeys := make([]spotify.ID, 0, chunkSize)
 
@@ -133,5 +133,5 @@ func main() {
 	songInfo = getter.addAudioFeatures(songInfo)
 	printStatReport(songInfo, "Energy")*/
 	//getAllAlbumsByLabel("ghostly international")
-	createLabelPlaylist("Peek-a-boo", "All")
+	createLabelPlaylist("Kompakt", "All")
 }
