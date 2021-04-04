@@ -21,12 +21,14 @@ func (sp SpotifyAPI) getAllAlbumsByLabel(recordLabelName string) *SongSet {
 		var albumIDs []spotify.ID = make([]spotify.ID, 0, 1000)
 
 		for offset := 0; offset < offsetMax && !gotAllResults; offset += maxLimit {
-			// search for albums from record label
-			results, err := sp.client.SearchOpt(fmt.Sprintf("label:\"%v\" year:%v", recordLabelName, years), spotify.SearchTypeAlbum, &spotify.Options{Limit: &maxLimit, Offset: &offset})
+			searchQuery := fmt.Sprintf("label:\"%v\" year:%v", recordLabelName, years)
+			options := &spotify.Options{Limit: &maxLimit, Offset: &offset}
+
+			results, err := sp.client.SearchOpt(searchQuery, spotify.SearchTypeAlbum, options)
 			if err != nil {
 				log.Fatal(err)
 			}
-			printSearchResults(years, &albumIDs, results)
+			recordAlbumIDs(years, &albumIDs, results)
 			if results.Albums.Total <= (offset + maxLimit) {
 				gotAllResults = true
 			}
@@ -42,17 +44,15 @@ func (sp SpotifyAPI) getAllAlbumsByLabel(recordLabelName string) *SongSet {
 func (sp *SpotifyAPI) getTracksForAlbums(albumIDs *[]spotify.ID, trackInfo SongSet) SongSet {
 	var albumsPerRequest = 20
 	for offset := 0; offset < len(*albumIDs); offset += albumsPerRequest {
-		fmt.Println("In getTracksForAlbums. offset =", offset, "; len(*albumIDs) =", len(*albumIDs))
 		var endIndex = offset + albumsPerRequest
 		if len(*albumIDs) < endIndex {
 			endIndex = len(*albumIDs)
 		}
 		var albumIDsForReq = (*albumIDs)[offset:endIndex]
-		var albumsData, _ = sp.client.GetAlbumsOpt(&spotify.Options{
-			Limit:  &albumsPerRequest,
-			Offset: &offset,
-		}, albumIDsForReq...)
+		options := &spotify.Options{Limit: &albumsPerRequest, Offset: &offset}
+		var albumsData, _ = sp.client.GetAlbumsOpt(options, albumIDsForReq...)
 		fmt.Println(len(albumIDsForReq), "albums requested.", len(albumsData), "albums received.")
+
 		for _, album := range albumsData {
 			fmt.Println("Album", album.Name, "has", len(album.Tracks.Tracks), "tracks.")
 			for _, track := range album.Tracks.Tracks {
@@ -63,7 +63,7 @@ func (sp *SpotifyAPI) getTracksForAlbums(albumIDs *[]spotify.ID, trackInfo SongS
 	return trackInfo
 }
 
-func printSearchResults(years string, albumIDs *[]spotify.ID, results *spotify.SearchResult) {
+func recordAlbumIDs(years string, albumIDs *[]spotify.ID, results *spotify.SearchResult) {
 	if results.Albums != nil {
 		fmt.Println("Albums (", years, "):")
 		for _, item := range results.Albums.Albums {
