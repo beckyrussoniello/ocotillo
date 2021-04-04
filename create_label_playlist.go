@@ -25,7 +25,7 @@ func createLabelPlaylist(labelName string, playlistType string) {
 	allTracks := sp.getAllAlbumsByLabel(labelName)
 	trackChunks := trackIDChunks(*allTracks, chunkSize)
 	for _, chunk := range trackChunks {
-		for i := 0; i < len(chunk); i += chunkSize { // max trackIDs to add to playlist in one req
+		for i := 0; i < len(chunk); i += chunkSize {
 			trackIDsForReq := make([]spotify.ID, 0, chunkSize)
 			maxJ := chunkSize + i
 			if len(chunk) < maxJ {
@@ -34,8 +34,6 @@ func createLabelPlaylist(labelName string, playlistType string) {
 			for j := 0 + i; j < maxJ; j++ {
 				trackIDsForReq = append(trackIDsForReq, chunk[j])
 			}
-			fmt.Println(playlist)
-			fmt.Println(trackIDsForReq)
 			sp.client.AddTracksToPlaylist(playlist.ID, trackIDsForReq...)
 		}
 	}

@@ -14,14 +14,11 @@ const offsetMax int = 950
 var yearSpans = []string{"1900-1971", "1972-1986", "1987-2001", "2002-2011", "2012-2021"}
 
 func (sp SpotifyAPI) getAllAlbumsByLabel(recordLabelName string) *SongSet {
-	//client := clientCredentialsAuth()
-	//var allTrackIDs [][]spotify.ID = make([][]spotify.ID, 0, 5)
 	var allTrackIDs SongSet = make(SongSet)
 	for yearSpansIndex := 0; yearSpansIndex < len(yearSpans); yearSpansIndex++ {
 		gotAllResults := false
 		years := yearSpans[yearSpansIndex]
 		var albumIDs []spotify.ID = make([]spotify.ID, 0, 1000)
-		//var trackIDs []spotify.ID = make([]spotify.ID, 0, 50000)
 
 		for offset := 0; offset < offsetMax && !gotAllResults; offset += maxLimit {
 			// search for albums from record label
@@ -36,10 +33,6 @@ func (sp SpotifyAPI) getAllAlbumsByLabel(recordLabelName string) *SongSet {
 		}
 
 		sp.getTracksForAlbums(&albumIDs, allTrackIDs)
-		/*for _, song := range *trackIDsForAlbums {
-			allTrackIDs[trackID] = Song{ ReleaseDate: }
-		}*/
-		//allTrackIDs = append(allTrackIDs, *trackIDsForAlbums)
 	}
 
 	sp.addAudioFeatures(allTrackIDs)
@@ -63,9 +56,7 @@ func (sp *SpotifyAPI) getTracksForAlbums(albumIDs *[]spotify.ID, trackInfo SongS
 		for _, album := range albumsData {
 			fmt.Println("Album", album.Name, "has", len(album.Tracks.Tracks), "tracks.")
 			for _, track := range album.Tracks.Tracks {
-				//*trackIDs = append(*trackIDs, track.ID)
 				trackInfo[track.ID] = Song{ReleaseDate: album.ReleaseDate}
-				//fmt.Println(track.ID, album.ReleaseDate)
 			}
 		}
 	}
@@ -78,14 +69,6 @@ func printSearchResults(years string, albumIDs *[]spotify.ID, results *spotify.S
 		for _, item := range results.Albums.Albums {
 			*albumIDs = append(*albumIDs, item.ID)
 			fmt.Println("   ", item.Artists[0].Name, "-", item.Name, " || ", item.ReleaseDate)
-		}
-	}
-
-	// handle artist results
-	if results.Artists != nil {
-		fmt.Println("Artists:")
-		for _, item := range results.Artists.Artists {
-			fmt.Println("   ", item.Name, "(", item.ID.String(), ")", item.Genres)
 		}
 	}
 }
