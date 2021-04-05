@@ -103,7 +103,9 @@ func (m *mockSpotifyClient) GetAudioFeatures(ids ...spotify.ID) ([]*spotify.Audi
 }
 
 func (m *mockSpotifyClient) CreatePlaylistForUser(userID, playlistName, description string, public bool) (*spotify.FullPlaylist, error) {
-	return &spotify.FullPlaylist{}, nil
+	return &spotify.FullPlaylist{
+		SimplePlaylist: spotify.SimplePlaylist{ID: spotify.ID("hello")},
+	}, nil
 }
 
 func (m *mockSpotifyClient) AddTracksToPlaylist(playlistID spotify.ID, trackIDs ...spotify.ID) (snapshotID string, err error) {

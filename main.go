@@ -128,10 +128,6 @@ func trackIDChunks(songInfo SongSet, chunkSize int) [][]spotify.ID {
 }
 
 func main() {
-	/*getter := SpotifyAPI{client: clientCredentialsAuth()}
-	songInfo := getter.buildBasicSongInfo(meditationId)
-	songInfo = getter.addAudioFeatures(songInfo)
-	printStatReport(songInfo, "Energy")*/
-	//getAllAlbumsByLabel("ghostly international")
-	createLabelPlaylist("Kompakt", "All")
+	api := SpotifyAPI{client: userAuth()}
+	api.createLabelPlaylist("Kompakt", "All")
 }
