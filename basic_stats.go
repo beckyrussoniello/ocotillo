@@ -33,6 +33,14 @@ type StatReport struct {
 	fieldName string
 }
 
+func (sr *StatReport) toSongSet() *SongSet {
+	songSet := make(SongSet)
+	for _, song := range sr.songSlice {
+		songSet[song.ID] = song
+	}
+	return &songSet
+}
+
 func (sr *StatReport) min() float32 {
 	return float32(reflect.ValueOf(sr.songSlice[0]).FieldByName(sr.fieldName).Float())
 }

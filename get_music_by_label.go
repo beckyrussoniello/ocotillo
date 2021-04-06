@@ -67,7 +67,7 @@ func (albs *AlbumsByYearSpan) getTracksForAlbums(trackInfo *SongSet) *SongSet {
 		var albumsData, _ = albs.api.client.GetAlbumsOpt(options, albumIDsForReq...)
 		for _, album := range albumsData {
 			for _, track := range album.Tracks.Tracks {
-				(*trackInfo)[track.ID] = Song{ReleaseDate: album.ReleaseDate}
+				(*trackInfo)[track.ID] = Song{ReleaseDate: album.ReleaseDate, ID: track.ID}
 			}
 		}
 	}

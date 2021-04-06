@@ -175,7 +175,6 @@ func Test_addAudioFeatures(t *testing.T) {
 	client := mockSpotifyClient{}
 	pg := SpotifyAPI{client: &client}
 	songInfo := pg.addAudioFeatures(basicSongInfo())
-	fmt.Println(songInfo)
 	assertEqual(t, len(songInfo), len(spotifyTracks()), "")
 	assertEqual(t, songInfo[spotify.ID("hello 2")].Name, "Pictures Of You", "")
 	assertEqual(t, int(songInfo[spotify.ID("hello 2")].Energy), 35, "")

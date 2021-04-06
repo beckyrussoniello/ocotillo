@@ -73,7 +73,6 @@ func Test_createLabelPlaylist(t *testing.T) {
 	playlistType := "Top"
 	api := SpotifyAPI{client: &mockSpotifyClient{}}
 	lpl := api.createLabelPlaylist(labelName, playlistType)
-	fmt.Println(lpl)
 	assertEqual(t, lpl.labelName, labelName, "")
 	assertEqual(t, lpl.playlistType, playlistType, "")
 	assertEqual(t, lpl.spotifyID, spotify.ID("hello"), "")

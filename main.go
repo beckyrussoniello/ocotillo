@@ -28,7 +28,7 @@ type spotifyClient interface {
 }
 
 type Song struct {
-	ID               string
+	ID               spotify.ID
 	Name             string
 	ArtistName       string
 	AlbumName        string
@@ -38,7 +38,7 @@ type Song struct {
 	Energy           float32
 	Instrumentalness float32
 	Liveness         float32
-	Popularity       int
+	Popularity       float32
 	Speechiness      float32
 	Tempo            int
 	Valence          float32
@@ -62,7 +62,7 @@ func (sp *SpotifyAPI) buildBasicSongInfo(playlistID string) SongSet {
 	for _, trackObj := range tracklist {
 		track := trackObj.Track
 		songInfo[track.ID] = Song{Name: track.Name, ArtistName: track.Artists[0].Name,
-			AlbumName: track.Album.Name, Popularity: track.Popularity}
+			AlbumName: track.Album.Name, Popularity: float32(track.Popularity)}
 	}
 	return songInfo
 }
@@ -112,7 +112,6 @@ func trackIDChunks(songInfo SongSet, chunkSize int) [][]spotify.ID {
 	batchKeys := make([]spotify.ID, 0, chunkSize)
 
 	for k := range songInfo {
-		fmt.Println(k)
 		batchKeys = append(batchKeys, k)
 		if len(batchKeys) == chunkSize {
 			allChunks = append(allChunks, batchKeys)

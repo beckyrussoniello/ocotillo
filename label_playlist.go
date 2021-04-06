@@ -32,7 +32,9 @@ func (sp *SpotifyAPI) createLabelPlaylist(labelName string, playlistType string)
 	}
 	labelPlaylist.spotifyID = playlist.ID
 	allTracks := labelPlaylist.api.getAllAlbumsByLabel(labelName)
-	labelPlaylist.addTracksToPlaylist(allTracks)
+	statReport := StatReport{sortByField(*allTracks, "Popularity"), "Popularity"}
+	sortedTracks := statReport.toSongSet()
+	labelPlaylist.addTracksToPlaylist(sortedTracks)
 	return &labelPlaylist
 }
 
