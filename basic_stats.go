@@ -6,31 +6,30 @@ import (
 	"sort"
 )
 
-type ByField struct {
+type StatReport struct {
 	songSlice []Song
 	fieldName string
 }
 
-func (a ByField) Len() int { return len(a.songSlice) }
-func (a ByField) Less(i, j int) bool {
-	iFieldValue := reflect.ValueOf(a.songSlice[i]).FieldByName(a.fieldName).Float()
-	jFieldValue := reflect.ValueOf(a.songSlice[j]).FieldByName(a.fieldName).Float()
+func (sr StatReport) Len() int { return len(sr.songSlice) }
+
+func (sr StatReport) Less(i, j int) bool {
+	iFieldValue := reflect.ValueOf(sr.songSlice[i]).FieldByName(sr.fieldName).Float()
+	jFieldValue := reflect.ValueOf(sr.songSlice[j]).FieldByName(sr.fieldName).Float()
 	return iFieldValue < jFieldValue
 }
-func (a ByField) Swap(i, j int) { a.songSlice[i], a.songSlice[j] = a.songSlice[j], a.songSlice[i] }
+
+func (sr StatReport) Swap(i, j int) {
+	sr.songSlice[i], sr.songSlice[j] = sr.songSlice[j], sr.songSlice[i]
+}
 
 func sortByField(songSet SongSet, field string) []Song {
 	songSlice := make([]Song, 0, len(songSet))
 	for _, v := range songSet {
 		songSlice = append(songSlice, v)
 	}
-	sort.Sort(ByField{songSlice, field})
+	sort.Sort(StatReport{songSlice, field})
 	return songSlice
-}
-
-type StatReport struct {
-	songSlice []Song
-	fieldName string
 }
 
 func (sr *StatReport) toSongSet() *SongSet {
