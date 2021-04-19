@@ -22,7 +22,9 @@ type AlbumsByYearSpan struct {
 }
 
 func (sp SpotifyAPI) getAllAlbumsByLabel(recordLabelName string) *SongSet {
-	var allTracks_SongSet SongSet = make(SongSet)
+	allTracks_SongSet := SongSet{}
+	allTracks_SongSet.data = make(map[spotify.ID]Song)
+	allTracks_SongSet.orderedKeys = make([]spotify.ID, 0, 10000)
 	for yearSpansIndex := 0; yearSpansIndex < len(yearSpans); yearSpansIndex++ {
 		albumsByYearSpan := AlbumsByYearSpan{
 			years:         yearSpans[yearSpansIndex],
@@ -35,7 +37,7 @@ func (sp SpotifyAPI) getAllAlbumsByLabel(recordLabelName string) *SongSet {
 		albumsByYearSpan.getTracksForAlbums(&allTracks_SongSet)
 	}
 
-	sp.addAudioFeatures(allTracks_SongSet)
+	sp.addTracksInfo(allTracks_SongSet)
 	return &allTracks_SongSet
 }
 
@@ -67,7 +69,8 @@ func (albs *AlbumsByYearSpan) getTracksForAlbums(trackInfo *SongSet) *SongSet {
 		var albumsData, _ = albs.api.client.GetAlbumsOpt(options, albumIDsForReq...)
 		for _, album := range albumsData {
 			for _, track := range album.Tracks.Tracks {
-				(*trackInfo)[track.ID] = Song{ReleaseDate: album.ReleaseDate, ID: track.ID}
+				(*trackInfo).data[track.ID] = Song{ReleaseDate: album.ReleaseDate, ID: track.ID}
+				trackInfo.orderedKeys = append(trackInfo.orderedKeys, track.ID)
 			}
 		}
 	}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+
+	"github.com/zmb3/spotify"
 )
 
 type StatReport struct {
@@ -23,19 +25,23 @@ func (sr StatReport) Swap(i, j int) {
 	sr.songSlice[i], sr.songSlice[j] = sr.songSlice[j], sr.songSlice[i]
 }
 
-func sortByField(songSet SongSet, field string) []Song {
-	songSlice := make([]Song, 0, len(songSet))
-	for _, v := range songSet {
+func sortByField(songSet SongSet, field string) *StatReport {
+	songSlice := make([]Song, 0, len(songSet.data))
+	for _, v := range songSet.data {
 		songSlice = append(songSlice, v)
 	}
-	sort.Sort(StatReport{songSlice, field})
-	return songSlice
+	statRep := StatReport{songSlice, field}
+	sort.Sort(sort.Reverse(statRep))
+	return &statRep
 }
 
 func (sr *StatReport) toSongSet() *SongSet {
-	songSet := make(SongSet)
+	songSet := SongSet{}
+	songSet.data = make(map[spotify.ID]Song)
+	songSet.orderedKeys = make([]spotify.ID, 0, 10000)
 	for _, song := range sr.songSlice {
-		songSet[song.ID] = song
+		songSet.data[song.ID] = song
+		songSet.orderedKeys = append(songSet.orderedKeys, song.ID)
 	}
 	return &songSet
 }
@@ -77,6 +83,6 @@ func (sr *StatReport) print() {
 }
 
 func printStatReport(songSet SongSet, fieldName string) {
-	vr := StatReport{sortByField(songSet, fieldName), fieldName}
+	vr := sortByField(songSet, fieldName)
 	vr.print()
 }

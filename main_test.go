@@ -75,6 +75,21 @@ func (m *mockSpotifyClient) GetPlaylistTracks(playlistID spotify.ID) (*spotify.P
 	}, nil
 }
 
+func (m *mockSpotifyClient) GetTracks(ids ...spotify.ID) ([]*spotify.FullTrack, error) {
+	tracks := make([]*spotify.FullTrack, 0, 1)
+	for _, id := range ids {
+		tracks = append(tracks, &spotify.FullTrack{
+			SimpleTrack: spotify.SimpleTrack{ID: id},
+			Album:       spotify.SimpleAlbum{},
+			ExternalIDs: map[string]string{},
+			Popularity:  44,
+			IsPlayable:  new(bool),
+			LinkedFrom:  &spotify.LinkedFromInfo{},
+		})
+	}
+	return tracks, nil
+}
+
 func (m *mockSpotifyClient) GetAudioFeatures(ids ...spotify.ID) ([]*spotify.AudioFeatures, error) {
 	audioFeatures := make([]*spotify.AudioFeatures, 0, 1)
 	for _, id := range ids {
@@ -140,15 +155,18 @@ func fullAlbumSlice() []*spotify.FullAlbum {
 }
 
 func basicSongInfo() SongSet {
-	data := make(SongSet, 1)
-	data[spotify.ID("hello 2")] = Song{
+	songSet := SongSet{}
+	songSet.data = make(map[spotify.ID]Song)
+	songSet.orderedKeys = make([]spotify.ID, 0, 10000)
+	songSet.data[spotify.ID("hello 2")] = Song{
 		ID:          "hello 2",
 		Name:        "Pictures Of You",
 		ArtistName:  "The Cure",
 		AlbumName:   "Disintegration",
 		ReleaseDate: "5-2-1989",
 	}
-	return data
+	songSet.orderedKeys = append(songSet.orderedKeys, spotify.ID("hello 2"))
+	return songSet
 }
 
 func assertEqual(t *testing.T, a interface{}, b interface{}, message string) {
@@ -165,29 +183,41 @@ func Test_buildBasicSongInfo(t *testing.T) {
 	client := mockSpotifyClient{}
 	pg := SpotifyAPI{client: &client}
 	songInfo := pg.buildBasicSongInfo("fake playlist id")
-	assertEqual(t, len(songInfo), len(spotifyTracks()), "")
-	assertEqual(t, songInfo[spotify.ID("hello 2")].Name, "Pictures Of You", "")
-	assertEqual(t, songInfo[spotify.ID("hello 2")].AlbumName, "Disintegration", "")
-	assertEqual(t, songInfo[spotify.ID("hello 2")].ArtistName, "The Cure", "")
+	assertEqual(t, len(songInfo.data), len(spotifyTracks()), "")
+	assertEqual(t, songInfo.data[spotify.ID("hello 2")].Name, "Pictures Of You", "")
+	assertEqual(t, songInfo.data[spotify.ID("hello 2")].AlbumName, "Disintegration", "")
+	assertEqual(t, songInfo.data[spotify.ID("hello 2")].ArtistName, "The Cure", "")
+}
+
+func Test_getTracksInfo(t *testing.T) {
+	client := mockSpotifyClient{}
+	pg := SpotifyAPI{client: &client}
+	songInfo := pg.addTracksInfo(basicSongInfo())
+	assertEqual(t, len(songInfo.data), len(spotifyTracks()), "")
+	assertEqual(t, songInfo.data[spotify.ID("hello 2")].Popularity, float32(44), "")
 }
 
 func Test_addAudioFeatures(t *testing.T) {
 	client := mockSpotifyClient{}
 	pg := SpotifyAPI{client: &client}
 	songInfo := pg.addAudioFeatures(basicSongInfo())
-	assertEqual(t, len(songInfo), len(spotifyTracks()), "")
-	assertEqual(t, songInfo[spotify.ID("hello 2")].Name, "Pictures Of You", "")
-	assertEqual(t, int(songInfo[spotify.ID("hello 2")].Energy), 35, "")
-	assertEqual(t, int(songInfo[spotify.ID("hello 2")].Instrumentalness), 40, "")
+	assertEqual(t, len(songInfo.data), len(spotifyTracks()), "")
+	assertEqual(t, songInfo.data[spotify.ID("hello 2")].Name, "Pictures Of You", "")
+	assertEqual(t, int(songInfo.data[spotify.ID("hello 2")].Energy), 35, "")
+	assertEqual(t, int(songInfo.data[spotify.ID("hello 2")].Instrumentalness), 40, "")
 }
 
 func Test_trackIDChunks(t *testing.T) {
-	songSet := make(SongSet, 10)
+	songSet := SongSet{}
+	songSet.data = make(map[spotify.ID]Song)
+	songSet.orderedKeys = make([]spotify.ID, 0, 10)
 	for i := 0; i < 10; i++ {
 		spotifyID := spotify.ID(fmt.Sprintf("hello %v", i))
-		songSet[spotifyID] = Song{}
+		songSet.data[spotifyID] = Song{}
+		songSet.orderedKeys = append(songSet.orderedKeys, spotifyID)
 	}
 	trackIDs := trackIDChunks(songSet, 3)
 	assertEqual(t, len(trackIDs), 4, "")
 	assertEqual(t, len(trackIDs[0]), 3, "")
+	assertEqual(t, trackIDs[0][0], spotify.ID("hello 0"), "")
 }

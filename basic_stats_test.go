@@ -7,10 +7,11 @@ import (
 )
 
 func mockPlaylistData() SongSet {
-	playlist := make(SongSet)
-	playlist[spotify.ID("pics of you")] = Song{Valence: 50}
-	playlist[spotify.ID("fascination st")] = Song{Valence: 45}
-	playlist[spotify.ID("lullaby")] = Song{Valence: 30}
+	playlist := SongSet{}
+	playlist.data = make(map[spotify.ID]Song)
+	playlist.data[spotify.ID("pics of you")] = Song{Valence: 50}
+	playlist.data[spotify.ID("fascination st")] = Song{Valence: 45}
+	playlist.data[spotify.ID("lullaby")] = Song{Valence: 30}
 	return playlist
 }
 
@@ -25,9 +26,9 @@ func mockSongSlice() []Song {
 
 func Test_sortByValence(t *testing.T) {
 	sorted := sortByField(mockPlaylistData(), "Valence")
-	assertEqual(t, sorted[0].Valence, float32(30), "")
-	assertEqual(t, sorted[1].Valence, float32(45), "")
-	assertEqual(t, sorted[2].Valence, float32(50), "")
+	assertEqual(t, (*sorted).songSlice[0].Valence, float32(50), "")
+	assertEqual(t, (*sorted).songSlice[1].Valence, float32(45), "")
+	assertEqual(t, (*sorted).songSlice[2].Valence, float32(30), "")
 }
 
 func Test_min(t *testing.T) {

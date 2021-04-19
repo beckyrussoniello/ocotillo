@@ -26,11 +26,12 @@ func Test_getAllAlbumsByLabel(t *testing.T) {
 	sp := SpotifyAPI{client: &mockSpotifyClient{}}
 	recordLabelName := "Test-it-all"
 	testSongSet := sp.getAllAlbumsByLabel(recordLabelName)
-	assertEqual(t, len(*testSongSet), 20, "")
-	assertEqual(t, (*testSongSet)[spotify.ID("0")].ReleaseDate, "3/1/2000", "")
-	assertEqual(t, (*testSongSet)[spotify.ID("0")].Energy, float32(35), "")
-	assertEqual(t, (*testSongSet)[spotify.ID("0")].Liveness, float32(10), "")
-	assertEqual(t, (*testSongSet)[spotify.ID("0")].ID, spotify.ID("0"), "")
+	assertEqual(t, len(testSongSet.data), 20, "")
+	assertEqual(t, testSongSet.data[spotify.ID("0")].ReleaseDate, "3/1/2000", "")
+	/*assertEqual(t, testSongSet.data[spotify.ID("0")].Energy, float32(35), "")
+	assertEqual(t, testSongSet.data[spotify.ID("0")].Liveness, float32(10), "")*/
+	assertEqual(t, testSongSet.data[spotify.ID("0")].ID, spotify.ID("0"), "")
+	assertEqual(t, testSongSet.data[spotify.ID("0")].Popularity, float32(44), "")
 }
 
 func Test_getAlbumsData(t *testing.T) {
@@ -55,9 +56,11 @@ func Test_getTracksForAlbums(t *testing.T) {
 		albs.albumIDs = append(albs.albumIDs, spotify.ID(fmt.Sprintf("%v", i)))
 	}
 	songSet := SongSet{}
+	songSet.data = make(map[spotify.ID]Song)
+	songSet.orderedKeys = make([]spotify.ID, 0, 20)
 	albs.getTracksForAlbums(&songSet)
-	assertEqual(t, len(songSet), 20, "")
-	assertEqual(t, songSet[spotify.ID("0")].ReleaseDate, "3/1/2000", "")
+	assertEqual(t, len(songSet.data), 20, "")
+	assertEqual(t, songSet.data[spotify.ID("0")].ReleaseDate, "3/1/2000", "")
 }
 
 func Test_recordAlbumIDs(t *testing.T) {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"log"
 
 	"github.com/zmb3/spotify"
@@ -32,8 +31,14 @@ func (sp *SpotifyAPI) createLabelPlaylist(labelName string, playlistType string)
 	}
 	labelPlaylist.spotifyID = playlist.ID
 	allTracks := labelPlaylist.api.getAllAlbumsByLabel(labelName)
-	statReport := StatReport{sortByField(*allTracks, "Popularity"), "Popularity"}
-	sortedTracks := statReport.toSongSet()
+	statRep := sortByField(*allTracks, "Popularity")
+	if labelPlaylist.playlistType == "Top" {
+		statRep.songSlice = statRep.songSlice[:labelPlaylist.length(statRep.songSlice)]
+	}
+	sortedTracks := statRep.toSongSet()
+	for _, k := range sortedTracks.orderedKeys {
+		fmt.Println(sortedTracks.data[k])
+	}
 	labelPlaylist.addTracksToPlaylist(sortedTracks)
 	return &labelPlaylist
 }
@@ -55,5 +60,17 @@ func (labelPlaylist *LabelPlaylist) addTracksToPlaylist(allTracks *SongSet) {
 	for _, chunk := range trackChunks {
 		labelPlaylist.api.client.AddTracksToPlaylist(labelPlaylist.spotifyID, chunk...)
 		labelPlaylist.trackIDs = append(labelPlaylist.trackIDs, chunk...)
+	}
+}
+
+func (labelPlaylist *LabelPlaylist) length(allTracks []Song) int {
+	if labelPlaylist.playlistType == "All" {
+		return len(allTracks)
+	} else {
+		topTracksCount := len(allTracks) / 10
+		if topTracksMaxLength < topTracksCount {
+			topTracksCount = topTracksMaxLength
+		}
+		return topTracksCount
 	}
 }
