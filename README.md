@@ -1,11 +1,16 @@
 # ocotillo
 Exploratory app as I learn Go, using the Spotify API.
 
-Right now, it:
-1) Takes the ID of a Spotify Playlist
-2) Makes an API call to get the tracklist, including some basic attributes of each song
-3) Creates a map (data structure) to store this information, where each key is an individual song's Spotify ID, and the value is a struct
-4) Makes a second API call to get more detailed "audio features" of all the songs
-5) Further populates the data structure with these additional fields
-6) Prints out all of the playlist's track data with some formatting
-7) Creates a ValenceReport struct, with basic stats methods (min, max, sum, mean, median) and prints it out
+Current Features:
+1) Label Playlists
+- Search Spotify for all albums released by a particular label
+- Sort all tracks on these albums by popularity (or another attribute)
+- Create a new playlist, either with all tracks from the label, or top tracks (top 10% by attribute)
+2) Stat Report
+- Take a set of songs (either from an existing playlist, or the label search above)
+- Print out basic stats about a given audio feature (valence, energy, liveness, etc)
+- Information includes min, max, sum, mean, median
+3) Song Set
+- SongSet is a struct which stores information for a set of tracks
+- A track can be looked up by its Spotify ID. This key is associated with a Song struct containing data for the track
+- Stores data from several different Spotify API endpoints
