@@ -14,7 +14,7 @@ import (
 const redirectURI = "http://localhost:8080/callback"
 
 var (
-	auth  = spotify.NewAuthenticator(redirectURI, spotify.ScopeUserReadPrivate)
+	auth  = spotify.NewAuthenticator(redirectURI, spotify.ScopeUserReadPrivate, spotify.ScopePlaylistModifyPublic)
 	ch    = make(chan *spotify.Client)
 	state = "abc123"
 )
